@@ -39,7 +39,6 @@ public class MainActivity extends Activity {
         Button btnLaunch = findViewById(R.id.btnLaunch);
         Button btnLogin = findViewById(R.id.btnLogin);
 
-        // إعداد القائمة المنسدلة
         String[] types = {"Microsoft", "Offline", "Ely.by", "LittleSkin"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, types);
         authTypeSpinner.setAdapter(adapter);
@@ -65,7 +64,6 @@ public class MainActivity extends Activity {
             statusText.setText("Offline Mode: " + user);
             statusText.setTextColor(0xFF00FF00);
         } else {
-            // Ely.by or LittleSkin
             String url = type.equals("Ely.by") ? MicrosoftAuth.ELY_BY_URL : MicrosoftAuth.LITTLE_SKIN_URL;
             authManager.loginWithYggdrasil(url, user, pass, new Callback() {
                 @Override
@@ -83,8 +81,6 @@ public class MainActivity extends Activity {
             });
         }
     }
-
-    // ... (أبقي دوال openLoginDialog و exchangeCodeForToken و fetchVersionsLogic كما هي في كودك السابق)
     
     private void openLoginDialog() {
         Dialog loginDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
@@ -135,7 +131,6 @@ public class MainActivity extends Activity {
         });
     }
 
-    // منطق جلب الإصدارات والتحميل (كما هو في الكود السابق)
     private void fetchVersionsLogic(Button btn) {
         versionManager.fetchVersions(new Callback() {
             @Override
