@@ -16,6 +16,7 @@ import java.util.List;
 
 public class MainActivity extends Activity {
     private VersionManager versionManager = new VersionManager();
+    private Gson gson = new Gson();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,28 +28,21 @@ public class MainActivity extends Activity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                btn.setText("Fetching Versions...");
+                btn.setText("Connecting to Mojang...");
                 btn.setEnabled(false);
 
                 versionManager.fetchVersions(new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
-                        Log.e("VoidLauncher", "Connection Error: " + e.getMessage());
-                        runOnUiThread(() -> {
-                            btn.setText("Error! Try Again");
-                            btn.setEnabled(true);
-                        });
+                        handleError(btn, "Connection Failed");
                     }
 
                     @Override
                     public void onResponse(Call call, Response response) throws IOException {
                         if (response.isSuccessful() && response.body() != null) {
-                            String jsonData = response.body().string();
-                            
                             try {
-                                Gson gson = new Gson();
+                                String jsonData = response.body().string();
                                 JsonObject jsonObject = gson.fromJson(jsonData, JsonObject.class);
-                                
                                 List<MCVersion> versions = gson.fromJson(
                                     jsonObject.get("versions"), 
                                     new TypeToken<List<MCVersion>>(){}.getType()
@@ -56,19 +50,60 @@ public class MainActivity extends Activity {
 
                                 if (versions != null && !versions.isEmpty()) {
                                     MCVersion latest = versions.get(0);
-
-                                    runOnUiThread(() -> {
-                                        btn.setText("Latest: " + latest.id);
-                                        btn.setEnabled(true);
-                                    });
+                                    
+                                    fetchGameDetails(latest, btn);
                                 }
                             } catch (Exception e) {
-                                Log.e("VoidLauncher", "Parsing Error: " + e.getMessage());
+                                handleError(btn, "Parse Error");
                             }
                         }
                     }
                 });
             }
+        });
+    }
+
+    private void fetchGameDetails(MCVersion version, Button btn) {
+        runOnUiThread(() -> btn.setText("Getting Download Link..."));
+
+        versionManager.fetchVersionDetails(version.url, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                handleError(btn, "Details Failed");
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        String detailJson = response.body().string();
+                        JsonObject details = gson.fromJson(detailJson, JsonObject.class);
+                        
+                        String downloadUrl = details.get("downloads")
+                                                   .getAsJsonObject()
+                                                   .get("client")
+                                                   .getAsJsonObject()
+                                                   .get("url").getAsString();
+
+                        Log.d("VoidLauncher", "Direct URL for " + version.id + ": " + downloadUrl);
+
+                        runOnUiThread(() -> {
+                            btn.setText("Ready: " + version.id);
+                            btn.setEnabled(true);
+                        });
+                    } catch (Exception e) {
+                        handleError(btn, "Detail Parse Error");
+                    }
+                }
+            }
+        });
+    }
+
+    private void handleError(Button btn, String message) {
+        Log.e("VoidLauncher", message);
+        runOnUiThread(() -> {
+            btn.setText(message);
+            btn.setEnabled(true);
         });
     }
 }
