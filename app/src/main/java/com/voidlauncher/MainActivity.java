@@ -2,7 +2,12 @@ package com.voidlauncher;
 
 import android.os.Bundle;
 import android.app.Activity;
+import android.app.Dialog;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.TextView;
 import android.util.Log;
 import android.view.View;
 import java.io.File;
@@ -19,44 +24,84 @@ public class MainActivity extends Activity {
     private VersionManager versionManager = new VersionManager();
     private GameDownloader downloader = new GameDownloader();
     private Gson gson = new Gson();
+    private TextView statusText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button btn = findViewById(R.id.btnLaunch);
+        Button btnLaunch = findViewById(R.id.btnLaunch);
+        Button btnLogin = findViewById(R.id.btnLogin);
+        statusText = findViewById(R.id.statusText);
 
-        btn.setOnClickListener(v -> {
-            btn.setText("Connecting...");
-            btn.setEnabled(false);
+        btnLogin.setOnClickListener(v -> openLoginDialog());
 
-            versionManager.fetchVersions(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    handleError(btn, "Check Internet");
+        btnLaunch.setOnClickListener(v -> {
+            btnLaunch.setText("Connecting...");
+            btnLaunch.setEnabled(false);
+            fetchVersionsLogic(btnLaunch);
+        });
+    }
+
+    private void openLoginDialog() {
+        Dialog loginDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        WebView webView = new WebView(this);
+        loginDialog.setContentView(webView);
+        
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setDomStorageEnabled(true);
+        
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                String url = request.getUrl().toString();
+                if (url.contains("?code=")) {
+                    String code = url.split("code=")[1].split("&")[0];
+                    Log.d("VoidLauncher", "Auth Code: " + code);
+                    
+                    runOnUiThread(() -> {
+                        statusText.setText("Login Success! Code: " + code.substring(0, 5) + "...");
+                        statusText.setTextColor(0xFFA020F0);
+                    });
+                    
+                    loginDialog.dismiss();
+                    return true;
                 }
+                return false;
+            }
+        });
 
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    if (response.isSuccessful() && response.body() != null) {
-                        try {
-                            String jsonData = response.body().string();
-                            JsonObject jsonObject = gson.fromJson(jsonData, JsonObject.class);
-                            List<MCVersion> versions = gson.fromJson(
-                                jsonObject.get("versions"), 
-                                new TypeToken<List<MCVersion>>(){}.getType()
-                            );
+        webView.loadUrl(MicrosoftAuth.getLoginUrl());
+        loginDialog.show();
+    }
 
-                            if (versions != null && !versions.isEmpty()) {
-                                fetchGameDetails(versions.get(0), btn);
-                            }
-                        } catch (Exception e) {
-                            handleError(btn, "JSON Error");
+    private void fetchVersionsLogic(Button btn) {
+        versionManager.fetchVersions(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                handleError(btn, "Check Internet");
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        String jsonData = response.body().string();
+                        JsonObject jsonObject = gson.fromJson(jsonData, JsonObject.class);
+                        List<MCVersion> versions = gson.fromJson(
+                            jsonObject.get("versions"), 
+                            new TypeToken<List<MCVersion>>(){}.getType()
+                        );
+
+                        if (versions != null && !versions.isEmpty()) {
+                            fetchGameDetails(versions.get(0), btn);
                         }
+                    } catch (Exception e) {
+                        handleError(btn, "JSON Error");
                     }
                 }
-            });
+            }
         });
     }
 
@@ -101,8 +146,8 @@ public class MainActivity extends Activity {
                 runOnUiThread(() -> {
                     btn.setText("Download Complete!");
                     btn.setEnabled(true);
+                    statusText.setText("File: " + outputFile.getName());
                 });
-                Log.d("VoidLauncher", "File saved at: " + outputFile.getAbsolutePath());
             }
 
             @Override
