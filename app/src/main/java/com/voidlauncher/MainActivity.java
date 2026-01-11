@@ -9,7 +9,6 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.TextView;
 import android.util.Log;
-import android.view.View;
 import java.io.File;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -23,6 +22,7 @@ import java.util.List;
 public class MainActivity extends Activity {
     private VersionManager versionManager = new VersionManager();
     private GameDownloader downloader = new GameDownloader();
+    private MicrosoftAuth authManager = new MicrosoftAuth();
     private Gson gson = new Gson();
     private TextView statusText;
 
@@ -58,14 +58,9 @@ public class MainActivity extends Activity {
                 String url = request.getUrl().toString();
                 if (url.contains("?code=")) {
                     String code = url.split("code=")[1].split("&")[0];
-                    Log.d("VoidLauncher", "Auth Code: " + code);
-                    
-                    runOnUiThread(() -> {
-                        statusText.setText("Login Success! Code: " + code.substring(0, 5) + "...");
-                        statusText.setTextColor(0xFFA020F0);
-                    });
-                    
                     loginDialog.dismiss();
+                    
+                    exchangeCodeForToken(code);
                     return true;
                 }
                 return false;
@@ -76,30 +71,51 @@ public class MainActivity extends Activity {
         loginDialog.show();
     }
 
+    private void exchangeCodeForToken(String code) {
+        runOnUiThread(() -> statusText.setText("Exchanging code for token..."));
+        
+        authManager.getMicrosoftToken(code, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(() -> statusText.setText("Auth Failed: " + e.getMessage()));
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful() && response.body() != null) {
+                    String jsonData = response.body().string();
+                    JsonObject json = gson.fromJson(jsonData, JsonObject.class);
+                    String accessToken = json.get("access_token").getAsString();
+                    
+                    Log.d("VoidLauncher", "MS Access Token: " + accessToken);
+                    
+                    runOnUiThread(() -> {
+                        statusText.setText("Microsoft Account Linked!");
+                        statusText.setTextColor(0xFFA020F0);
+                    });
+                    
+                } else {
+                    runOnUiThread(() -> statusText.setText("Server rejected the code"));
+                }
+            }
+        });
+    }
+
     private void fetchVersionsLogic(Button btn) {
         versionManager.fetchVersions(new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
-                handleError(btn, "Check Internet");
-            }
-
+            public void onFailure(Call call, IOException e) { handleError(btn, "Check Internet"); }
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful() && response.body() != null) {
                     try {
                         String jsonData = response.body().string();
                         JsonObject jsonObject = gson.fromJson(jsonData, JsonObject.class);
-                        List<MCVersion> versions = gson.fromJson(
-                            jsonObject.get("versions"), 
-                            new TypeToken<List<MCVersion>>(){}.getType()
-                        );
-
+                        List<MCVersion> versions = gson.fromJson(jsonObject.get("versions"), new TypeToken<List<MCVersion>>(){}.getType());
                         if (versions != null && !versions.isEmpty()) {
                             fetchGameDetails(versions.get(0), btn);
                         }
-                    } catch (Exception e) {
-                        handleError(btn, "JSON Error");
-                    }
+                    } catch (Exception e) { handleError(btn, "JSON Error"); }
                 }
             }
         });
@@ -107,26 +123,17 @@ public class MainActivity extends Activity {
 
     private void fetchGameDetails(MCVersion version, Button btn) {
         runOnUiThread(() -> btn.setText("Getting Link..."));
-
         versionManager.fetchVersionDetails(version.url, new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
-                handleError(btn, "Details Failed");
-            }
-
+            public void onFailure(Call call, IOException e) { handleError(btn, "Details Failed"); }
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful() && response.body() != null) {
                     try {
                         JsonObject details = gson.fromJson(response.body().string(), JsonObject.class);
-                        String downloadUrl = details.get("downloads").getAsJsonObject()
-                                                   .get("client").getAsJsonObject()
-                                                   .get("url").getAsString();
-
+                        String downloadUrl = details.get("downloads").getAsJsonObject().get("client").getAsJsonObject().get("url").getAsString();
                         startDownload(downloadUrl, version.id, btn);
-                    } catch (Exception e) {
-                        handleError(btn, "Link Error");
-                    }
+                    } catch (Exception e) { handleError(btn, "Link Error"); }
                 }
             }
         });
@@ -134,26 +141,20 @@ public class MainActivity extends Activity {
 
     private void startDownload(String url, String versionName, Button btn) {
         runOnUiThread(() -> btn.setText("Downloading " + versionName + "..."));
-        
         File versionDir = new File(getExternalFilesDir(null), "mc_versions");
         if (!versionDir.exists()) versionDir.mkdirs();
-        
         File outputFile = new File(versionDir, versionName + ".jar");
-
         downloader.downloadFile(url, outputFile, new GameDownloader.DownloadCallback() {
             @Override
             public void onSuccess() {
                 runOnUiThread(() -> {
                     btn.setText("Download Complete!");
                     btn.setEnabled(true);
-                    statusText.setText("File: " + outputFile.getName());
+                    statusText.setText("Ready to Launch: " + versionName);
                 });
             }
-
             @Override
-            public void onError(String error) {
-                handleError(btn, "Download Failed");
-            }
+            public void onError(String error) { handleError(btn, "Download Failed"); }
         });
     }
 
