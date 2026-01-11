@@ -36,7 +36,6 @@ public class MainActivity extends Activity {
         statusText = findViewById(R.id.statusText);
 
         btnLogin.setOnClickListener(v -> openLoginDialog());
-
         btnLaunch.setOnClickListener(v -> {
             btnLaunch.setText("Connecting...");
             btnLaunch.setEnabled(false);
@@ -48,7 +47,6 @@ public class MainActivity extends Activity {
         Dialog loginDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         WebView webView = new WebView(this);
         loginDialog.setContentView(webView);
-        
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setDomStorageEnabled(true);
         
@@ -59,43 +57,49 @@ public class MainActivity extends Activity {
                 if (url.contains("?code=")) {
                     String code = url.split("code=")[1].split("&")[0];
                     loginDialog.dismiss();
-                    
                     exchangeCodeForToken(code);
                     return true;
                 }
                 return false;
             }
         });
-
         webView.loadUrl(MicrosoftAuth.getLoginUrl());
         loginDialog.show();
     }
 
     private void exchangeCodeForToken(String code) {
-        runOnUiThread(() -> statusText.setText("Exchanging code for token..."));
+        runOnUiThread(() -> statusText.setText("Linking Microsoft..."));
         
         authManager.getMicrosoftToken(code, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                runOnUiThread(() -> statusText.setText("Auth Failed: " + e.getMessage()));
+                runOnUiThread(() -> statusText.setText("MS Auth Failed"));
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful() && response.body() != null) {
-                    String jsonData = response.body().string();
-                    JsonObject json = gson.fromJson(jsonData, JsonObject.class);
-                    String accessToken = json.get("access_token").getAsString();
+                    JsonObject json = gson.fromJson(response.body().string(), JsonObject.class);
+                    String msToken = json.get("access_token").getAsString();
+
+                    runOnUiThread(() -> statusText.setText("Authenticating with Xbox..."));
                     
-                    Log.d("VoidLauncher", "MS Access Token: " + accessToken);
-                    
-                    runOnUiThread(() -> {
-                        statusText.setText("Microsoft Account Linked!");
-                        statusText.setTextColor(0xFFA020F0);
+                    authManager.getXboxLiveToken(msToken, new Callback() {
+                        @Override
+                        public void onResponse(Call c, Response resXbox) throws IOException {
+                            if (resXbox.isSuccessful()) {
+                                runOnUiThread(() -> {
+                                    statusText.setText("Xbox & Microsoft Linked!");
+                                    statusText.setTextColor(0xFFA020F0);
+                                });
+                                Log.d("VoidLauncher", "Xbox Auth Success");
+                            }
+                        }
+                        @Override
+                        public void onFailure(Call c, IOException e) {
+                            runOnUiThread(() -> statusText.setText("Xbox Auth Failed"));
+                        }
                     });
-                    
-                } else {
-                    runOnUiThread(() -> statusText.setText("Server rejected the code"));
                 }
             }
         });
@@ -140,7 +144,7 @@ public class MainActivity extends Activity {
     }
 
     private void startDownload(String url, String versionName, Button btn) {
-        runOnUiThread(() -> btn.setText("Downloading " + versionName + "..."));
+        runOnUiThread(() -> btn.setText("Downloading..."));
         File versionDir = new File(getExternalFilesDir(null), "mc_versions");
         if (!versionDir.exists()) versionDir.mkdirs();
         File outputFile = new File(versionDir, versionName + ".jar");
@@ -148,9 +152,9 @@ public class MainActivity extends Activity {
             @Override
             public void onSuccess() {
                 runOnUiThread(() -> {
-                    btn.setText("Download Complete!");
+                    btn.setText("Ready!");
                     btn.setEnabled(true);
-                    statusText.setText("Ready to Launch: " + versionName);
+                    statusText.setText("File: " + versionName + ".jar");
                 });
             }
             @Override
