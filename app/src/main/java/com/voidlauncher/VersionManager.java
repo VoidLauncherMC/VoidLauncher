@@ -11,4 +11,9 @@ public class VersionManager {
         Request request = new Request.Builder().url(MANIFEST_URL).build();
         client.newCall(request).enqueue(callback);
     }
+    
+    public void fetchVersionDetails(String url, Callback callback) {
+        Request request = new Request.Builder().url(url).build();
+        client.newCall(request).enqueue(callback);
+    }
 }
