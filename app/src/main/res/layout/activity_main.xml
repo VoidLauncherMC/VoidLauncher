@@ -3,38 +3,70 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#000000"
-    android:padding="20dp">
+    android:padding="15dp">
 
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"
         android:text="VOID LAUNCHER"
         android:textColor="#A020F0"
         android:textSize="32sp"
         android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/btnLaunch"
+    <Spinner
+        android:id="@+id/authTypeSpinner"
         android:layout_width="250dp"
-        android:layout_height="wrap_content"
+        android:layout_height="45dp"
         android:layout_below="@id/title"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="30dp"
-        android:backgroundTint="#A020F0"
-        android:text="Enter the Void"
-        android:textColor="#FFFFFF" />
+        android:backgroundTint="#A020F0" />
+
+    <EditText
+        android:id="@+id/editUsername"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/authTypeSpinner"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:hint="Email or Username"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#666666" />
+
+    <EditText
+        android:id="@+id/editPassword"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/editUsername"
+        android:layout_centerHorizontal="true"
+        android:hint="Password (if required)"
+        android:inputType="textPassword"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#666666" />
 
     <Button
         android:id="@+id/btnLogin"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:layout_below="@id/btnLaunch"
+        android:layout_below="@id/editPassword"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="10dp"
         android:backgroundTint="#2F2F2F"
-        android:text="Login with Microsoft"
+        android:text="Login / Set Profile"
+        android:textColor="#FFFFFF" />
+
+    <Button
+        android:id="@+id/btnLaunch"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btnLogin"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="#A020F0"
+        android:text="Enter the Void"
         android:textColor="#FFFFFF" />
 
     <TextView
