@@ -2,24 +2,50 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000"> <TextView
+    android:background="#000000"
+    android:padding="20dp">
+
+    <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
         android:text="VOID LAUNCHER"
-        android:textColor="#A020F0" 
+        android:textColor="#A020F0"
         android:textSize="32sp"
-        android:textStyle="bold"
-        android:layout_centerInParent="true" />
+        android:textStyle="bold" />
 
     <Button
         android:id="@+id/btnLaunch"
-        android:layout_width="wrap_content"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:layout_below="@id/title"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="30dp"
+        android:backgroundTint="#A020F0"
         android:text="Enter the Void"
-        android:backgroundTint="#A020F0" />
+        android:textColor="#FFFFFF" />
+
+    <Button
+        android:id="@+id/btnLogin"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btnLaunch"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="#2F2F2F"
+        android:text="Login with Microsoft"
+        android:textColor="#FFFFFF" />
+
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="20dp"
+        android:text="Ready to launch"
+        android:textColor="#666666"
+        android:textSize="12sp" />
 
 </RelativeLayout>
