@@ -6,8 +6,7 @@ import android.app.Dialog;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Button;
-import android.widget.TextView;
+import android.widget.*;
 import android.util.Log;
 import java.io.File;
 import com.google.gson.Gson;
@@ -25,31 +24,74 @@ public class MainActivity extends Activity {
     private MicrosoftAuth authManager = new MicrosoftAuth();
     private Gson gson = new Gson();
     private TextView statusText;
+    private EditText editUsername, editPassword;
+    private Spinner authTypeSpinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        authTypeSpinner = findViewById(R.id.authTypeSpinner);
+        editUsername = findViewById(R.id.editUsername);
+        editPassword = findViewById(R.id.editPassword);
+        statusText = findViewById(R.id.statusText);
         Button btnLaunch = findViewById(R.id.btnLaunch);
         Button btnLogin = findViewById(R.id.btnLogin);
-        statusText = findViewById(R.id.statusText);
 
-        btnLogin.setOnClickListener(v -> openLoginDialog());
+        // إعداد القائمة المنسدلة
+        String[] types = {"Microsoft", "Offline", "Ely.by", "LittleSkin"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, types);
+        authTypeSpinner.setAdapter(adapter);
+
+        btnLogin.setOnClickListener(v -> handleLogin());
+        
         btnLaunch.setOnClickListener(v -> {
-            btnLaunch.setText("Connecting...");
+            btnLaunch.setText("Working...");
             btnLaunch.setEnabled(false);
             fetchVersionsLogic(btnLaunch);
         });
     }
 
+    private void handleLogin() {
+        String type = authTypeSpinner.getSelectedItem().toString();
+        String user = editUsername.getText().toString();
+        String pass = editPassword.getText().toString();
+
+        if (type.equals("Microsoft")) {
+            openLoginDialog();
+        } else if (type.equals("Offline")) {
+            if(user.isEmpty()) user = "VoidPlayer";
+            statusText.setText("Offline Mode: " + user);
+            statusText.setTextColor(0xFF00FF00);
+        } else {
+            // Ely.by or LittleSkin
+            String url = type.equals("Ely.by") ? MicrosoftAuth.ELY_BY_URL : MicrosoftAuth.LITTLE_SKIN_URL;
+            authManager.loginWithYggdrasil(url, user, pass, new Callback() {
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (response.isSuccessful()) {
+                        runOnUiThread(() -> {
+                            statusText.setText(type + " Login Success!");
+                            statusText.setTextColor(0xFF00FF00);
+                        });
+                    } else {
+                        runOnUiThread(() -> statusText.setText("Login Failed: Check Credentials"));
+                    }
+                }
+                @Override public void onFailure(Call call, IOException e) {}
+            });
+        }
+    }
+
+    // ... (أبقي دوال openLoginDialog و exchangeCodeForToken و fetchVersionsLogic كما هي في كودك السابق)
+    
     private void openLoginDialog() {
         Dialog loginDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         WebView webView = new WebView(this);
         loginDialog.setContentView(webView);
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setDomStorageEnabled(true);
-        
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -69,42 +111,31 @@ public class MainActivity extends Activity {
 
     private void exchangeCodeForToken(String code) {
         runOnUiThread(() -> statusText.setText("Linking Microsoft..."));
-        
         authManager.getMicrosoftToken(code, new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
-                runOnUiThread(() -> statusText.setText("MS Auth Failed"));
-            }
-
-            @Override
             public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful() && response.body() != null) {
+                if (response.isSuccessful()) {
                     JsonObject json = gson.fromJson(response.body().string(), JsonObject.class);
                     String msToken = json.get("access_token").getAsString();
-
-                    runOnUiThread(() -> statusText.setText("Authenticating with Xbox..."));
-                    
                     authManager.getXboxLiveToken(msToken, new Callback() {
                         @Override
-                        public void onResponse(Call c, Response resXbox) throws IOException {
-                            if (resXbox.isSuccessful()) {
+                        public void onResponse(Call c, Response res) throws IOException {
+                            if (res.isSuccessful()) {
                                 runOnUiThread(() -> {
-                                    statusText.setText("Xbox & Microsoft Linked!");
+                                    statusText.setText("Microsoft & Xbox Linked!");
                                     statusText.setTextColor(0xFFA020F0);
                                 });
-                                Log.d("VoidLauncher", "Xbox Auth Success");
                             }
                         }
-                        @Override
-                        public void onFailure(Call c, IOException e) {
-                            runOnUiThread(() -> statusText.setText("Xbox Auth Failed"));
-                        }
+                        @Override public void onFailure(Call c, IOException e) {}
                     });
                 }
             }
+            @Override public void onFailure(Call call, IOException e) {}
         });
     }
 
+    // منطق جلب الإصدارات والتحميل (كما هو في الكود السابق)
     private void fetchVersionsLogic(Button btn) {
         versionManager.fetchVersions(new Callback() {
             @Override
