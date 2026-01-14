@@ -1,83 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000"
-    android:padding="15dp">
-
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="50dp"
-        android:text="VOID LAUNCHER"
-        android:textColor="#A020F0"
-        android:textSize="32sp"
-        android:textStyle="bold" />
+    android:padding="16dp">
 
     <Spinner
-        android:id="@+id/authTypeSpinner"
-        android:layout_width="250dp"
-        android:layout_height="45dp"
-        android:layout_below="@id/title"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp"
-        android:backgroundTint="#A020F0" />
-
-    <EditText
-        android:id="@+id/editUsername"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/authTypeSpinner"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
-        android:hint="Email or Username"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#666666" />
-
-    <EditText
-        android:id="@+id/editPassword"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/editUsername"
-        android:layout_centerHorizontal="true"
-        android:hint="Password (if required)"
-        android:inputType="textPassword"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#666666" />
-
-    <Button
-        android:id="@+id/btnLogin"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/editPassword"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
-        android:backgroundTint="#2F2F2F"
-        android:text="Login / Set Profile"
-        android:textColor="#FFFFFF" />
+        android:id="@+id/spinnerVersions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 
     <Button
         android:id="@+id/btnLaunch"
-        android:layout_width="250dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/btnLogin"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
-        android:backgroundTint="#A020F0"
-        android:text="Enter the Void"
-        android:textColor="#FFFFFF" />
+        android:text="Launch"/>
 
     <TextView
         android:id="@+id/statusText"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="20dp"
-        android:text="Ready to launch"
-        android:textColor="#666666"
-        android:textSize="12sp" />
-
-</RelativeLayout>
+        android:text="Status"
+        android:paddingTop="16dp"/>
+</LinearLayout>
