@@ -16,15 +16,17 @@ public class LoginActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_main);
 
-        spinnerLoginType = findViewById(R.id.spinnerLoginType);
-        editUsername = findViewById(R.id.editUsername);
-        btnLogin = findViewById(R.id.btnLogin);
+        statusText = findViewById(R.id.statusText);
 
-        btnLogin.setOnClickListener(v -> {
-            startActivity(new Intent(this, MainActivity.class));
-            finish();
-        });
+        ProfileManager pm = new ProfileManager(this);
+        String username = pm.getProfile("offline_username");
+
+        if (username != null) {
+            statusText.setText("Welcome, " + username);
+        } else {
+            statusText.setText("Not logged in");
+        }
     }
 }
