@@ -1,27 +1,46 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:padding="16dp"
+    android:gravity="center"
+    android:padding="24dp"
     android:background="?android:windowBackground"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:background="@drawable/purple_card"
         android:orientation="vertical"
+        android:background="@drawable/purple_card"
+        android:padding="20dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <TextView
+            android:text="VoidLauncher"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/purple_main"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
         <Spinner
-            android:id="@+id/spinnerVersions"
+            android:id="@+id/spinnerLoginType"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <EditText
+            android:id="@+id/editUsername"
+            android:hint="Username"
+            android:layout_marginTop="12dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
         <Button
-            android:id="@+id/btnLaunch"
-            android:text="LAUNCH"
+            android:id="@+id/btnLogin"
+            android:text="LOGIN"
             android:textColor="@android:color/white"
             android:background="@drawable/btn_launch"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="16dp"
             android:layout_width="match_parent"
             android:layout_height="48dp"/>
     </LinearLayout>
