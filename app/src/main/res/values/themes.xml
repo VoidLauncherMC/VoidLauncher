@@ -1,0 +1,4 @@
+<style name="Theme.VoidLauncher" parent="Theme.AppCompat.Light.NoActionBar">
+    <item name="android:windowBackground">@color/bg_light</item>
+    <item name="android:textColor">@color/text_light</item>
+</style>
