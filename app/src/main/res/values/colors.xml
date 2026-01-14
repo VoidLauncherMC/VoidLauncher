@@ -1,14 +1,9 @@
 <resources>
-    <!-- Purple Core -->
     <color name="purple_main">#8B5CF6</color>
     <color name="purple_glow">#A78BFA</color>
-
-    <!-- Light -->
     <color name="bg_light">#F8F8FB</color>
     <color name="card_light">#FFFFFF</color>
     <color name="text_light">#111111</color>
-
-    <!-- Dark -->
     <color name="bg_dark">#0E0E11</color>
     <color name="card_dark">#1A1A22</color>
     <color name="text_dark">#FFFFFF</color>
